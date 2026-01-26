@@ -36,12 +36,18 @@ type Model struct {
     // Progress bar related
     progress      float64
     
+    // Config
+    renderer      string
+    
+    // Cache
+    titleRender   string
+    
     // Image related
     lastArtURL    string
     artRender     string
 }
 
-func NewModel() (*Model, error) {
+func NewModel(renderer string) (*Model, error) {
 	pc := player.NewControl()
     // 200 bars for visualizer to cover wide screens
 	cc, err := visualizer.NewCavaControl(200)
@@ -50,8 +56,10 @@ func NewModel() (*Model, error) {
 	}
 
 	return &Model{
-		playerControl: pc,
-		cavaControl:   cc,
+		playerControl:     pc,
+		cavaControl:       cc,
+		visualizerData:    make([]int, 200),
+        renderer:          renderer,
 	}, nil
 }
 
@@ -98,48 +106,72 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.err = err
         
         // Check if art changed
-        if meta != nil && meta.ArtURL != m.lastArtURL {
-             m.lastArtURL = meta.ArtURL
-             return m, tea.Batch(tickCmd(), func() tea.Msg {
-                 // Async load image
-                 // strip file:// prefix if present
-                 url := strings.TrimPrefix(meta.ArtURL, "file://")
+        if meta != nil {
+            // Check title change for ASCII art cache
+            if m.metadata == nil || meta.Title != m.metadata.Title {
+                // Generate ASCII art
+                // Note: We need width for responsive font choice, but here we might not have updated width yet if it's a resize msg?
+                // It's safe to use m.width.
+                
+                tArt := figure.NewFigure(meta.Title, "rectangles", true).String()
+                headingWidth := lipgloss.Width(tArt)
+                // Heuristic: If wider than screen minus safety padding (e.g. 10)
+                if headingWidth > m.width - 10 {
+                    tArt = figure.NewFigure(meta.Title, "small", true).String()
+                    if lipgloss.Width(tArt) > m.width - 10 {
+                        tArt = TitleStyle.Render(meta.Title)
+                    }
+                }
+                m.titleRender = TitleStyle.Render(tArt)
+            }
+        
+            if meta.ArtURL != m.lastArtURL {
+                 m.lastArtURL = meta.ArtURL
                  
-                 // Chafa handles HTTP and Files? 
-                 // Chafa CLI usually handles files. HTTP might need downloading to temp file.
-                 // Let's reuse kitty's logic for "if http, download".
-                 // Actually, chafa might not handle URLs directly in all versions.
-                 // Safer: Download to temp if http.
-                 
-                 targetPath := url
-                 if strings.HasPrefix(url, "http") {
-                     // Download to temp file
-                     resp, err := http.Get(url)
-                     if err != nil {
-                         return imageMsg("")
-                     }
-                     defer resp.Body.Close()
-                     
-                     tmpFile, err := os.CreateTemp("", "beautyctl-art-*.jpg")
-                     if err != nil {
-                         return imageMsg("")
-                     }
-                     // defer os.Remove(tmpFile.Name()) // Keep it? Or cache? For now leaks temp files but safe for session.
-                     // A better way is to cache by URL hash.
-                     
-                     _, err = io.Copy(tmpFile, resp.Body)
-                     tmpFile.Close()
-                     if err != nil {
-                         return imageMsg("")
-                     }
-                     targetPath = tmpFile.Name()
+                 if m.renderer == "none" {
+                     return m, nil
                  }
-                 
-                 // 80x20 approx size? Or 20x10?
-                 // Let's try 34x15 for higher res text art.
-                 art := image.RenderChafa(targetPath, 34, 15)
-                 return imageMsg(art)
-             })
+
+                 renderer := m.renderer
+                 return m, tea.Batch(tickCmd(), func() tea.Msg {
+                     // Async load image
+                     // strip file:// prefix if present
+                     url := strings.TrimPrefix(meta.ArtURL, "file://")
+                     
+                     targetPath := url
+                     if strings.HasPrefix(url, "http") {
+                         // Download to temp file
+                         resp, err := http.Get(url)
+                         if err != nil {
+                             return imageMsg("")
+                         }
+                         defer resp.Body.Close()
+                         
+                         tmpFile, err := os.CreateTemp("", "beautyctl-art-*.jpg")
+                         if err != nil {
+                             return imageMsg("")
+                         }
+                         
+                         _, err = io.Copy(tmpFile, resp.Body)
+                         tmpFile.Close()
+                         if err != nil {
+                             return imageMsg("")
+                         }
+                         targetPath = tmpFile.Name()
+                     }
+                     
+                     // 80x20 approx size? Or 20x10?
+                     // Let's try 34x15 for higher res text art.
+                     var art string
+                     if renderer == "jp2a" {
+                        art = image.RenderJP2A(targetPath, 34, 15)
+                     } else {
+                        // chafa default
+                        art = image.RenderChafa(targetPath, 34, 15)
+                     }
+                     return imageMsg(art)
+                 })
+            }
         }
 
 		return m, tickCmd()
@@ -175,20 +207,30 @@ func (m Model) View() string {
 
     // --- Cover Art ---
     var coverView string
-    if m.artRender != "" {
-        coverView = m.artRender
-    } else {
-        // Placeholder
-        coverView = lipgloss.NewStyle().
-            Width(34).
-            Height(15).
-            Border(lipgloss.DoubleBorder()).
-            Align(lipgloss.Center, lipgloss.Center).
-            Render("🎵")
+    showCover := m.renderer != "none"
+    var coverWidth int
+    
+    if showCover {
+        if m.artRender != "" {
+            coverView = m.artRender
+        } else {
+            // Placeholder
+            coverView = lipgloss.NewStyle().
+                Width(34).
+                Height(15).
+                Border(lipgloss.DoubleBorder()).
+                Align(lipgloss.Center, lipgloss.Center).
+                Render("🎵")
+        }
     }
-    coverBox := lipgloss.NewStyle().
-        MarginRight(2).
-        Render(coverView)
+    
+    var coverBox string
+    if showCover {
+        coverBox = lipgloss.NewStyle().
+            MarginRight(2).
+            Render(coverView)
+        coverWidth = lipgloss.Width(coverBox)
+    }
 
 
     // --- Info Section ---
@@ -198,18 +240,11 @@ func (m Model) View() string {
     }
     
     // Adjust info max width to account for cover art
-    infoMaxWidth := width - lipgloss.Width(coverBox) - 4
+    infoMaxWidth := width - coverWidth - 4
     if infoMaxWidth < 20 { infoMaxWidth = 20 }
     
-    // Big Title (ASCII Art)
-    titleArt := figure.NewFigure(m.metadata.Title, "rectangles", true).String()
-    if lipgloss.Width(titleArt) > infoMaxWidth {
-         titleArt = figure.NewFigure(m.metadata.Title, "small", true).String()
-         if lipgloss.Width(titleArt) > infoMaxWidth {
-             titleArt = TitleStyle.Render(m.metadata.Title)
-         }
-    }
-    titleArt = TitleStyle.Render(titleArt)
+    // Title is already cached in m.titleRender
+    titleArt := m.titleRender
 
     
     // Progress Bar
@@ -244,7 +279,12 @@ func (m Model) View() string {
     )
     
     // Combine Cover + Info
-    topSection := lipgloss.JoinHorizontal(lipgloss.Center, coverBox, info)
+    var topSection string
+    if showCover {
+        topSection = lipgloss.JoinHorizontal(lipgloss.Center, coverBox, info)
+    } else {
+        topSection = info
+    }
     
     // --- Help Section ---
     helpStyle := lipgloss.NewStyle().Foreground(SubTitleColor).Faint(true)

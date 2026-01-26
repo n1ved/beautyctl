@@ -1,8 +1,10 @@
 package main
 
 import (
+	"flag"
     "fmt"
     "os"
+    "strings"
     
     "beautyctl/logger"
     "beautyctl/ui"
@@ -11,6 +13,15 @@ import (
 )
 
 func main() {
+    coverMode := flag.String("cover", "chafa", "Cover art render mode: chafa | jp2a | none")
+    flag.Parse()
+    
+    mode := strings.ToLower(*coverMode)
+    if mode != "chafa" && mode != "jp2a" && mode != "none" {
+        fmt.Fprintf(os.Stderr, "Invalid cover mode: %s. Use: chafa, jp2a, or none.\n", mode)
+        os.Exit(1)
+    }
+
     if err := logger.Init("beautyctl.log"); err != nil {
         fmt.Fprintf(os.Stderr, "Could not initialize logger: %v\n", err)
         os.Exit(1)
@@ -19,7 +30,7 @@ func main() {
     
     logger.Println("Starting BeautyCTL...")
 
-    m, err := ui.NewModel()
+    m, err := ui.NewModel(mode)
     if err != nil {
         fmt.Fprintf(os.Stderr, "Error initializing: %v\n", err)
         os.Exit(1)
