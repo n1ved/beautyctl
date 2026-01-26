@@ -189,21 +189,51 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m Model) View() string {
-	if m.err != nil {
-		return fmt.Sprintf("Error: %v\n\nEnsure a music player is running.", m.err)
-	}
-	if m.metadata == nil {
-		return "Waiting for player..."
-	}
-
     width := m.width
     height := m.height
     
-    // --- Layout Calculations ---
-    // If width is too small, just show simplistic view
-    if width < 20 {
+    // Check if window is too small first to avoid panic in Layout
+    if width < 20 || height < 10 {
         return "Terminal too small"
     }
+
+	if m.err != nil || m.metadata == nil {
+        // --- Idle / Error Screen ---
+        
+        // Big Title
+        titleArt := figure.NewFigure("BeautyCTL", "rectangles", true).String()
+        if lipgloss.Width(titleArt) > width - 4 {
+             titleArt = figure.NewFigure("BeautyCTL", "small", true).String()
+        }
+        titleArt = TitleStyle.Render(titleArt)
+        
+        statusMsg := "Waiting for music player..."
+        if m.err != nil {
+            statusMsg = fmt.Sprintf("Error: %v", m.err)
+        }
+        
+        subTitle := lipgloss.NewStyle().
+            Foreground(SubTitleColor).
+            Render(statusMsg)
+            
+        hint := lipgloss.NewStyle().
+            Foreground(SubTitleColor).
+            Faint(true).
+            Render("Start Spotify, VLC, mpv, or any MPRIS player.")
+            
+        content := lipgloss.JoinVertical(lipgloss.Center,
+            titleArt,
+            "",
+            subTitle,
+            "",
+            hint,
+        )
+        
+        return lipgloss.Place(width, height, 
+            lipgloss.Center, lipgloss.Center, 
+            content,
+        )
+	}
 
     // --- Cover Art ---
     var coverView string
