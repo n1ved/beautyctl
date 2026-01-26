@@ -75,6 +75,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
+        m.updateTitle() // Recalculate title size on resize
         return m, nil
 
 	case tea.KeyMsg:
@@ -98,28 +99,30 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case tickMsg:
         meta, err := m.playerControl.GetMetadata()
-		m.metadata = meta
-		m.err = err
         
         // Check if art changed
         if meta != nil {
-            // Check title change for ASCII art cache
-            if m.metadata == nil || meta.Title != m.metadata.Title {
-                // Generate ASCII art
-                // Note: We need width for responsive font choice, but here we might not have updated width yet if it's a resize msg?
-                // It's safe to use m.width.
-                
-                tArt := figure.NewFigure(meta.Title, "rectangles", true).String()
-                headingWidth := lipgloss.Width(tArt)
-                // Heuristic: If wider than screen minus safety padding (e.g. 10)
-                if headingWidth > m.width - 10 {
-                    tArt = figure.NewFigure(meta.Title, "small", true).String()
-                    if lipgloss.Width(tArt) > m.width - 10 {
-                        tArt = TitleStyle.Render(meta.Title)
-                    }
-                }
-                m.titleRender = TitleStyle.Render(tArt)
-            }
+             // Check title change for ASCII art cache - compare with OLD metadata
+             if m.metadata == nil || meta.Title != m.metadata.Title {
+                // Determine if we need to update title
+                // We must update m.metadata AFTER this check to detect change,
+                // BUT updateTitle uses m.metadata. So we should set it temporarily or pass it?
+                // Better: Set it, then call update.
+                // Wait, if I set it, how do I know it changed?
+                // Store old title.
+             }
+             
+             oldTitle := ""
+             if m.metadata != nil {
+                 oldTitle = m.metadata.Title
+             }
+             
+             m.metadata = meta
+             m.err = err
+             
+             if meta.Title != oldTitle {
+                 m.updateTitle()
+             }
         
             if meta.ArtURL != m.lastArtURL {
                  m.lastArtURL = meta.ArtURL
@@ -424,4 +427,19 @@ func waitForVisualizer(ch chan []int) tea.Cmd {
 		}
 		return visualizerMsg(v)
 	}
+}
+func (m *Model) updateTitle() {
+    if m.metadata == nil {
+        return
+    }
+    tArt := figure.NewFigure(m.metadata.Title, "rectangles", true).String()
+    headingWidth := lipgloss.Width(tArt)
+    // Heuristic: If wider than screen minus safety padding (e.g. 10)
+    if headingWidth > m.width - 10 {
+        tArt = figure.NewFigure(m.metadata.Title, "small", true).String()
+        if lipgloss.Width(tArt) > m.width - 10 {
+            tArt = TitleStyle.Render(m.metadata.Title)
+        }
+    }
+    m.titleRender = TitleStyle.Render(tArt)
 }
