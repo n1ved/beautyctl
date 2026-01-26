@@ -88,10 +88,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.playerControl.Next()
 		case "p":
 			m.playerControl.Previous()
-        case "up":
-            m.playerControl.VolumeUp()
-        case "down":
-            m.playerControl.VolumeDown()
         case "right":
             m.playerControl.SeekForward()
         case "left":
@@ -318,7 +314,7 @@ func (m Model) View() string {
     
     // --- Help Section ---
     helpStyle := lipgloss.NewStyle().Foreground(SubTitleColor).Faint(true)
-    help := helpStyle.Render(" [Space] Play/Pause  [N] Next  [P] Prev  [←/→] Seek  [↑/↓] Vol  [Q] Quit ")
+    help := helpStyle.Render(" [Space] Play/Pause  [N] Next  [P] Prev  [←/→] Seek  [Q] Quit ")
     
     // Combine Top + Help
     topContent := lipgloss.JoinVertical(lipgloss.Center, topSection, "", help)
