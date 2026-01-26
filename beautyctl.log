@@ -1,0 +1,20 @@
+[BEAUTYCTL] 2026/01/26 22:11:56 logger.go:37: Starting BeautyCTL...
+[BEAUTYCTL] 2026/01/26 22:11:56 logger.go:31: Starting Cava with config: /tmp/beautyctl-cava-3845029403.conf
+[BEAUTYCTL] 2026/01/26 22:11:57 logger.go:31: Chafa error: exec: "chafa": executable file not found in $PATH
+[BEAUTYCTL] 2026/01/26 22:11:59 logger.go:31: Chafa error: exec: "chafa": executable file not found in $PATH
+[BEAUTYCTL] 2026/01/26 22:12:00 logger.go:31: Chafa error: exec: "chafa": executable file not found in $PATH
+[BEAUTYCTL] 2026/01/26 22:12:46 logger.go:37: Starting BeautyCTL...
+[BEAUTYCTL] 2026/01/26 22:12:46 logger.go:31: Starting Cava with config: /tmp/beautyctl-cava-993872283.conf
+[BEAUTYCTL] 2026/01/26 22:12:47 logger.go:31: Chafa error: exit status 2
+[BEAUTYCTL] 2026/01/26 22:13:49 logger.go:37: Starting BeautyCTL...
+[BEAUTYCTL] 2026/01/26 22:13:49 logger.go:31: Starting Cava with config: /tmp/beautyctl-cava-845837455.conf
+[BEAUTYCTL] 2026/01/26 22:13:50 logger.go:31: Chafa error: exit status 2. Stderr: chafa: Size must be specified as [width]x[height], [width]x or x[height], e.g 80x25, 80x or x25.
+[BEAUTYCTL] 2026/01/26 22:14:35 logger.go:37: Starting BeautyCTL...
+[BEAUTYCTL] 2026/01/26 22:14:35 logger.go:31: Starting Cava with config: /tmp/beautyctl-cava-928255964.conf
+[BEAUTYCTL] 2026/01/26 22:14:35 logger.go:31: Chafa error: exit status 2. Stderr: chafa: Size must be specified as [width]x[height], [width]x or x[height], e.g 80x25, 80x or x25.
+[BEAUTYCTL] 2026/01/26 22:14:49 logger.go:31: Chafa error: exit status 2. Stderr: chafa: Size must be specified as [width]x[height], [width]x or x[height], e.g 80x25, 80x or x25.
+[BEAUTYCTL] 2026/01/26 22:14:50 logger.go:31: Chafa error: exit status 2. Stderr: chafa: Size must be specified as [width]x[height], [width]x or x[height], e.g 80x25, 80x or x25.
+[BEAUTYCTL] 2026/01/26 22:14:51 logger.go:37: Starting BeautyCTL...
+[BEAUTYCTL] 2026/01/26 22:14:51 logger.go:31: Starting Cava with config: /tmp/beautyctl-cava-1773487419.conf
+[BEAUTYCTL] 2026/01/26 22:16:32 logger.go:37: Starting BeautyCTL...
+[BEAUTYCTL] 2026/01/26 22:16:32 logger.go:31: Starting Cava with config: /tmp/beautyctl-cava-3536636859.conf
