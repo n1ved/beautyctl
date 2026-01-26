@@ -1,0 +1,12 @@
+# Binaries
+beautyctl
+bin/
+
+# Logs
+*.log
+beautyctl.log
+
+# Temporary
+tmp/
+*.tar.gz
+debug_escape.txt
