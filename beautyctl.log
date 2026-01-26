@@ -1,2 +1,4 @@
 [BEAUTYCTL] 2026/01/26 22:53:08 logger.go:37: Starting BeautyCTL...
 [BEAUTYCTL] 2026/01/26 22:53:08 logger.go:31: Starting Cava with config: /tmp/beautyctl-cava-541150832.conf
+[BEAUTYCTL] 2026/01/26 22:59:24 logger.go:31: Chafa error: exit status 2. Stderr: chafa: Failed to open '/tmp/.com.google.Chrome.Qd2QjC': No such file or directory
+[BEAUTYCTL] 2026/01/26 22:59:31 logger.go:31: Chafa error: exit status 2. Stderr: chafa: Failed to open '/tmp/.com.google.Chrome.yupNsj': No such file or directory
