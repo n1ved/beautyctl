@@ -31,6 +31,12 @@ var (
 	BarStyle = lipgloss.NewStyle().
 		Foreground(lipgloss.Color("#8be9fd")) // Dracula Cyan
 
-    ActiveBarStyle = lipgloss.NewStyle().
-        Foreground(lipgloss.Color("#50fa7b")) // Dracula Green
+	ActiveBarStyle = lipgloss.NewStyle().
+		Foreground(lipgloss.Color("#50fa7b")) // Dracula Green
+
+	LyricsStyle = lipgloss.NewStyle().
+		Foreground(TextColor).
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(BorderColor).
+		Padding(0, 1)
 )
