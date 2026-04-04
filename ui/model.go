@@ -517,6 +517,22 @@ func (m *Model) updateTitle() {
 	if m.metadata == nil {
 		return
 	}
+
+	// Check if title is purely ASCII
+	isAscii := true
+	for i := 0; i < len(m.metadata.Title); i++ {
+		if m.metadata.Title[i] > 127 {
+			isAscii = false
+			break
+		}
+	}
+
+	// Fallback to normal text if foreign language character is present
+	if !isAscii || m.metadata.Title == "" {
+		m.titleRender = TitleStyle.Render(m.metadata.Title)
+		return
+	}
+
 	tArt := figure.NewFigure(m.metadata.Title, "rectangles", true).String()
 	headingWidth := lipgloss.Width(tArt)
 	// Heuristic: If wider than screen minus safety padding (e.g. 10)
