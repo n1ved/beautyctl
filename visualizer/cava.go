@@ -8,14 +8,14 @@ import (
 	"strconv"
 	"strings"
 
-    "beautyctl/logger"
+	"beautyctl/logger"
 )
 
 // CavaControl manages the cava process
 type CavaControl struct {
 	cmd        *exec.Cmd
 	Output     chan []int
-    configPath string
+	configPath string
 }
 
 // NewCavaControl starts a new cava process
@@ -27,12 +27,12 @@ func NewCavaControl(bars int) (*CavaControl, error) {
 	}
 	// Do not defer remove here, moved to Stop()
 
-    // ... (config content generation omitted for brevity if not changing, but replace_file_content needs context)
-    // Actually I need to match the whole function to remove the defer safely or specifically target the defer line.
-    // Let's rewrite the struct and NewCavaControl start and Stop.
+	// ... (config content generation omitted for brevity if not changing, but replace_file_content needs context)
+	// Actually I need to match the whole function to remove the defer safely or specifically target the defer line.
+	// Let's rewrite the struct and NewCavaControl start and Stop.
 
-    // Cava config for raw output
-    configContent := fmt.Sprintf(`
+	// Cava config for raw output
+	configContent := fmt.Sprintf(`
 [general]
 bars = 200
 framerate = 60
@@ -60,19 +60,19 @@ channels = mono
 	if err != nil {
 		return nil, err
 	}
-    
-    // Logging via global logger
-    logger.Printf("Starting Cava with config: %s", configFile.Name())
+
+	// Logging via global logger
+	logger.Printf("Starting Cava with config: %s", configFile.Name())
 
 	if err := cmd.Start(); err != nil {
-        logger.Printf("Failed to start cava: %v", err)
+		logger.Printf("Failed to start cava: %v", err)
 		return nil, err
 	}
 
 	c := &CavaControl{
 		cmd:        cmd,
 		Output:     make(chan []int),
-        configPath: configFile.Name(),
+		configPath: configFile.Name(),
 	}
 
 	// Read output in a goroutine
@@ -80,9 +80,9 @@ channels = mono
 		scanner := bufio.NewScanner(stdout)
 		for scanner.Scan() {
 			text := scanner.Text()
-            // Output is like "12;45;88;"
-            // We need to trim the trailing semicolon if present
-            text = strings.TrimSuffix(text, ";")
+			// Output is like "12;45;88;"
+			// We need to trim the trailing semicolon if present
+			text = strings.TrimSuffix(text, ";")
 			parts := strings.Split(text, ";")
 			var values []int
 			for _, p := range parts {
@@ -92,7 +92,7 @@ channels = mono
 			}
 			c.Output <- values
 		}
-        close(c.Output)
+		close(c.Output)
 	}()
 
 	return c, nil
@@ -103,7 +103,7 @@ func (c *CavaControl) Stop() {
 	if c.cmd != nil && c.cmd.Process != nil {
 		c.cmd.Process.Kill()
 	}
-    if c.configPath != "" {
-        os.Remove(c.configPath)
-    }
+	if c.configPath != "" {
+		os.Remove(c.configPath)
+	}
 }
